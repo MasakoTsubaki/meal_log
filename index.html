@@ -96,46 +96,47 @@
 
  <!-- 右：目標達成サマリー／1週間まとめ／エクスポート -->
       <div>
-        <div class="card">
-          <h2>今日の目標達成状況</h2>
-          <p class="small-note">設定した目標と今日の達成を自動で判定します。</p>
-          <ul id="goalList" style="padding-left:18px; margin-top:8px;"></ul>
+       <div class="card">
+  <h2>今日の目標達成状況</h2>
+  <p class="small-note">設定した目標と今日の達成を自動で判定します。</p>
+  <ul id="goalList" style="padding-left:18px; margin-top:8px;"></ul>
 
-          <div style="margin-top:12px;">
-            <label>目標（編集可）</label>
-            <!-- 目標入力エリア -->
-　　　　　　　<div class="goal-grid">
-  　　　　　　　<input id="goal_gohan" type="text" value="2" />
-  　　　　　　　<div class="small-note">ご飯/日</div>
+  <div style="margin-top:12px;">
+    <label>目標（編集可）</label>
+    <div style="display:grid; grid-template-columns:1fr 90px; gap:8px; margin-top:6px;">
+      <input id="goal_gohan" type="text" value="2" />
+      <div class="small-note" style="align-self:center;text-align:center;">ご飯/日</div>
 
- 　　　　　　　 <input id="goal_misoshiru" type="text" value="2" />
-  　　　　　　　<div class="small-note">味噌汁/日</div>
+      <input id="goal_misoshiru" type="text" value="2" />
+      <div class="small-note" style="align-self:center;text-align:center;">味噌汁/日</div>
 
-  　　　　　　　<input id="goal_gyokai" type="text" value="1" />
-  　　　　　　　<div class="small-note">魚介/日</div>
+      <input id="goal_gyokai" type="text" value="1" />
+      <div class="small-note" style="align-self:center;text-align:center;">魚介/日</div>
 
- 　　　　　　　 <input id="goal_kaiso" type="text" value="1" />
- 　　　　　　　 <div class="small-note">海藻/日</div>
+      <input id="goal_kaiso" type="text" value="1" />
+      <div class="small-note" style="align-self:center;text-align:center;">海藻/日</div>
 
-  　　　　　　　<input id="goal_mame" type="text" value="1" />
- 　　　　　　　 <div class="small-note">豆/日</div>
+      <input id="goal_mame" type="text" value="1" />
+      <div class="small-note" style="align-self:center;text-align:center;">豆/日</div>
 
-　　　　　　　  <input id="goal_tamago" type="text" value="1" />
-  　　　　　　　<div class="small-note">卵/日</div>
+      <input id="goal_tamago" type="text" value="1" />
+      <div class="small-note" style="align-self:center;text-align:center;">卵/日</div>
 
-　　　　　　　　<input id="goal_yasai" type="text" value="5" />
-　　　　　　　　<div class="small-note">野菜/日</div>
+      <input id="goal_yasai" type="text" value="5" />
+      <div class="small-note" style="align-self:center;text-align:center;">野菜/日</div>
 
-  　　　　　　　<input id="goal_kinoko" type="text" value="1" />
-  　　　　　　　<div class="small-note">きのこ/日</div>
-　　　　　　　</div>
+      <!-- きのこ目標欄追加 -->
+      <input id="goal_kinoko" type="text" value="1" />
+      <div class="small-note" style="align-self:center;text-align:center;">きのこ/日</div>
+    </div>
 
-            <div class="actions">
-              <button id="saveGoals" class="small">目標を保存</button>
-              <button id="resetGoals" class="tiny">初期値に戻す</button>
-            </div>
-          </div>
-        </div>
+    <div class="actions">
+      <button id="saveGoals" class="small">目標を保存</button>
+      <button id="resetGoals" class="tiny">初期値に戻す</button>
+    </div>
+  </div>
+</div>
+
 
         <div class="card" style="margin-top:14px;">
           <h2>1週間まとめ（過去7日）</h2>
