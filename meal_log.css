@@ -1,110 +1,193 @@
- /* ----------------------------
-     全体：柔らかいイエロー基調
-     ---------------------------- */
-  :root{
-    --bg:#fffbea;       /* ページ背景（柔らかい黄色） */
-    --card:#fff8d9;     /* セクション背景 */
-    --accent:#ffd76b;   /* メインアクセント（ボタン等） */
-    --accent-2:#ffb84d; /* ホバー等サブアクセント */
-    --muted:#6b5b00;    /* 見出し文字色 */
-    --table:#fffdf5;    /* テーブル背景 */
-    --danger:#ff8c42;   /* 警告色（オレンジ） */
-    --blue:#6aa6ff;     /* 補助ブルー */
-  }
-  body{
-    font-family:"Segoe UI", Meiryo, "ヒラギノ角ゴ ProN", sans-serif;
-    background:var(--bg);
-    color:#333;
-    margin:28px;
-    line-height:1.5;
-  }
-  h1{ text-align:center; color:var(--muted); margin-bottom:12px; }
-  .container{
-    max-width:1100px;
-    margin:0 auto;
-  }
+/* ====================================================
+   meal_log.css — 食事＆活動ログ用スタイル
+   柔らかい黄色基調、初心者向けコメント多め
+   ==================================================== */
+
+/* ----------------------------
+   1. カラーテーマを変数で管理
+   :root 内で定義しておくと後で色変更が簡単
+   ---------------------------- */
+:root{
+  --bg: #fffbea;        /* ページ全体の背景色（柔らかい黄色） */
+  --card: #fff8d9;      /* カード背景 */
+  --accent: #ffd76b;    /* ボタンやアクセント色 */
+  --accent-2: #ffb84d;  /* ボタンホバー時の色 */
+  --muted: #6b5b00;     /* 見出しや文字の濃いめカラー */
+  --table: #fffdf5;     /* テーブル背景 */
+  --danger: #ff8c42;    /* 注意・警告色 */
+  --blue: #6aa6ff;      /* 補助ブルー */
+}
+
+/* ----------------------------
+   2. ページ全体の基本設定
+   ---------------------------- */
+body{
+  font-family:"Segoe UI", Meiryo, "ヒラギノ角ゴ ProN", sans-serif; /* フォント指定 */
+  background: var(--bg);  /* 背景色 */
+  color: #333;            /* 文字色 */
+  margin: 28px;           /* ページ余白 */
+  line-height: 1.5;       /* 行間 */
+}
+
+/* ページタイトル */
+h1{
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ----------------------------
+   3. コンテナ・グリッド
+   ---------------------------- */
+.container{
+  max-width: 1100px; /* 最大幅 */
+  margin: 0 auto;    /* 中央配置 */
+}
+
+/* 左右2カラムレイアウト（入力系 / サマリー系） */
+.grid{
+  display: grid;
+  grid-template-columns: 1fr 380px; /* 左が可変、右固定幅 */
+  gap: 18px;
+  align-items: start;
+}
+
+/* レスポンシブ：幅が狭い場合は1列に */
+@media(max-width: 980px){
   .grid{
-    display:grid;
-    grid-template-columns: 1fr 380px;
-    gap:18px;
-    align-items:start;
+    grid-template-columns: 1fr;
   }
-  /* 各セクションカード */
-  .card{
-    background:var(--card);
-    padding:14px;
-    border-radius:10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    border:1px solid rgba(120,100,0,0.06);
-  }
-  .card h2{ margin-top:0; color:var(--muted); font-size:1.05rem; }
+}
 
-  /* ラベルと入力 */
-  label{ display:block; font-size:0.92rem; margin-top:8px; color:#5a4700; }
-  input[type="text"], select, textarea{
-    width:100%;
-    padding:8px;
-    margin-top:6px;
-    border-radius:6px;
-    border:1px solid rgba(120,100,0,0.12);
-    background:#fffef8;
-    box-sizing:border-box;
-  }
-  textarea{ resize:vertical; min-height:60px; }
+/* ----------------------------
+   4. カードスタイル
+   ---------------------------- */
+.card{
+  background: var(--card);
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 1px solid rgba(120,100,0,0.06);
+}
 
-  /* ボタン */
-  button{
-    background:var(--accent);
-    border:none;
-    padding:8px 12px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
-    color:#452e00;
-    margin-top:8px;
-  }
-  button:hover{ background:var(--accent-2); }
+/* カード内見出し */
+.card h2{
+  margin-top: 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
 
-  .small{
-    font-size:0.9rem;
-    padding:6px 10px;
-  }
+/* ----------------------------
+   5. ラベル・入力欄
+   ---------------------------- */
+label{
+  display: block;
+  font-size: 0.92rem;
+  margin-top: 8px;
+  color: #5a4700;
+}
 
-  /* ログテーブル */
-  table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-    background:var(--table);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  }
-  th, td{
-    padding:8px 10px;
-    border-bottom:1px solid rgba(120,100,0,0.06);
-    text-align:center;
-    font-size:0.95rem;
-  }
-  th{ background:#ffefb0; color:var(--muted); font-weight:700; }
-  tr:nth-child(even){ background:#fff8da; }
+input[type="text"], select, textarea{
+  width: 100%;                   /* 幅いっぱい */
+  padding: 8px;                   /* 内側余白 */
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(120,100,0,0.12);
+  background: #fffef8;
+  box-sizing: border-box;         /* パディング込みで幅計算 */
+}
 
-  /* 達成表示 */
-  .achieved{ color: green; font-weight:700; }
-  .remaining{ color:var(--danger); font-weight:700; }
+textarea{
+  resize: vertical; /* 縦方向だけサイズ変更可能 */
+  min-height: 60px;
+}
 
-  /* レスポンシブ */
-  @media(max-width:980px){
-    .grid{ grid-template-columns: 1fr; }
-  }
+/* ----------------------------
+   6. ボタン
+   ---------------------------- */
+button{
+  background: var(--accent);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #452e00;
+  margin-top: 8px;
+}
 
-  /* 補助 */
-  .row{ display:flex; gap:8px; align-items:center; }
-  .flexcol{ display:flex; flex-direction:column; gap:8px; }
-  .muted{ color:#6f5b00; font-size:0.95rem; }
-  .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-  .tiny{ font-size:0.85rem; padding:6px 8px; border-radius:6px; background:#fff7d9; border:1px solid rgba(0,0,0,0.03); }
-  .danger-btn{ background:#ff8a5a; color:white; }
-  .blue-btn{ background:var(--blue); color:white; }
-  .copy-area{ width:100%; height:110px; padding:8px; border-radius:6px; border:1px dashed rgba(120,100,0,0.12); background:#fffdf6; }
-  .small-note{ font-size:0.85rem; color:#705600; }
-  .pill{ background:#fff7d2; padding:6px 10px; border-radius:16px; border:1px solid rgba(0,0,0,0.03); display:inline-block; }
-  .delete-btn{ background:#ffdfe0; color:#7a1b1b; padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.03); }
+button:hover{
+  background: var(--accent-2);
+}
+
+/* ボタンサイズ別 */
+.small{ font-size: 0.9rem; padding: 6px 10px; }
+.tiny{ font-size: 0.85rem; padding: 6px 8px; border-radius:6px; background:#fff7d9; border:1px solid rgba(0,0,0,0.03);}
+.danger-btn{ background: #ff8a5a; color:white; }
+.blue-btn{ background: var(--blue); color:white; }
+
+/* ----------------------------
+   7. テーブル
+   ---------------------------- */
+table{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: var(--table);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+th, td{
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(120,100,0,0.06);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+th{
+  background: #ffefb0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+tr:nth-child(even){ background: #fff8da; }
+
+/* 達成表示 */
+.achieved{ color: green; font-weight:700; }
+.remaining{ color: var(--danger); font-weight:700; }
+
+/* ----------------------------
+   8. 補助クラス
+   ---------------------------- */
+.row{ display:flex; gap:8px; align-items:center; }
+.flexcol{ display:flex; flex-direction:column; gap:8px; }
+.muted{ color:#6f5b00; font-size:0.95rem; }
+.actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.pill{ background:#fff7d2; padding:6px 10px; border-radius:16px; border:1px solid rgba(0,0,0,0.03); display:inline-block; }
+.delete-btn{ background:#ffdfe0; color:#7a1b1b; padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.03); }
+.copy-area{ width:100%; height:110px; padding:8px; border-radius:6px; border:1px dashed rgba(120,100,0,0.12); background:#fffdf6; }
+.small-note{ font-size:0.85rem; color:#705600; }
+
+/* ----------------------------
+   9. 目標入力グリッド（新規きのこ対応）
+   ---------------------------- */
+.goal-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)) repeat(auto-fit, minmax(60px, auto));
+  gap: 8px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.goal-grid input{
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(120,100,0,0.12);
+  text-align: center;
+}
+
+.goal-grid .small-note{
+  font-size: 0.85rem;
+  text-align: center;
+  color: #705600;
+}
