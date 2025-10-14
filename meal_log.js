@@ -1,6 +1,6 @@
 /* ====================================================
    食事＆活動ログ — 複数カテゴリ対応版（CSV利用）
-   コメント多めで初心者向け
+   修正版：同一食材1日1カウント・きのこ対応
    ==================================================== */
 
 /* ---------------------------
@@ -17,10 +17,6 @@ document.getElementById('todayDisplay').textContent = todayISO();
 
 /* ---------------------------
    1) データ構造と保存キー（LocalStorage）
-   - logs: 配列。1行＝1エントリ（食事 or 運動）
-     { id, date, time, name, amount, category: [カテゴリ配列], type }
-   - dailyComments: 日付ごとのコメント文字列
-   - goals: 目標値オブジェクト（数値）
    --------------------------- */
 const LS_KEY_LOGS = 'meal_logs_v2';
 const LS_KEY_COMMENTS = 'meal_comments_v2';
@@ -36,7 +32,8 @@ const defaultGoals = {
   kaiso: 1,
   mame: 1,
   tamago: 1,
-  yasai: 5
+  yasai: 5,
+  kinoko: 1 // 追加
 };
 
 /* ---------------------------
@@ -64,38 +61,25 @@ async function loadCategoryCSV() {
 /* ---------------------------
    4) ローカルストレージの読み書き関数
    --------------------------- */
-function loadLogs() {
-  const raw = localStorage.getItem(LS_KEY_LOGS);
-  return raw ? JSON.parse(raw) : [];
-}
-function saveLogs(arr) {
-  localStorage.setItem(LS_KEY_LOGS, JSON.stringify(arr));
-}
-function loadComments() {
-  return JSON.parse(localStorage.getItem(LS_KEY_COMMENTS) || '{}');
-}
-function saveComments(obj) {
-  localStorage.setItem(LS_KEY_COMMENTS, JSON.stringify(obj));
-}
+function loadLogs() { return JSON.parse(localStorage.getItem(LS_KEY_LOGS) || '[]'); }
+function saveLogs(arr) { localStorage.setItem(LS_KEY_LOGS, JSON.stringify(arr)); }
+function loadComments() { return JSON.parse(localStorage.getItem(LS_KEY_COMMENTS) || '{}'); }
+function saveComments(obj) { localStorage.setItem(LS_KEY_COMMENTS, JSON.stringify(obj)); }
 function loadGoals() {
   const raw = localStorage.getItem(LS_KEY_GOALS);
   return raw ? JSON.parse(raw) : Object.assign({}, defaultGoals);
 }
-function saveGoals(obj) {
-  localStorage.setItem(LS_KEY_GOALS, JSON.stringify(obj));
-}
+function saveGoals(obj) { localStorage.setItem(LS_KEY_GOALS, JSON.stringify(obj)); }
 
 /* ---------------------------
    5) カテゴリ検出関数（複数カテゴリ対応）
-   - 食材名に含まれるキーワードをすべて検出
-   - 返り値は配列
    --------------------------- */
 function detectCategories(foodName) {
   if (!foodName) return [];
   const name = foodName.toString();
   const cats = [];
   for (const entry of categoryRulesCSV) {
-    if (name.includes(entry.name) && !cats.includes(entry.category)) {
+    if (name.includes(entry.name) && entry.category && !cats.includes(entry.category)) {
       cats.push(entry.category);
     }
   }
@@ -112,7 +96,8 @@ const categoryLabels = {
   kaiso: '海藻',
   mame: '豆',
   tamago: '卵',
-  yasai: '野菜'
+  yasai: '野菜',
+  kinoko: 'きのこ' // 追加
 };
 
 /* ---------------------------
@@ -123,13 +108,11 @@ let comments = loadComments();
 let goals = loadGoals();
 
 // 目標入力欄にロード済みの目標を反映
-document.getElementById('goal_gohan').value = goals.gohan;
-document.getElementById('goal_misoshiru').value = goals.misoshiru;
-document.getElementById('goal_gyokai').value = goals.gyokai;
-document.getElementById('goal_kaiso').value = goals.kaiso;
-document.getElementById('goal_mame').value = goals.mame;
-document.getElementById('goal_tamago').value = goals.tamago;
-document.getElementById('goal_yasai').value = goals.yasai;
+for (const key in defaultGoals) {
+  if (document.getElementById(`goal_${key}`)) {
+    document.getElementById(`goal_${key}`).value = goals[key];
+  }
+}
 
 // 今日のコメントがあれば表示
 if (comments[todayISO()]) document.getElementById('teacherComment').value = comments[todayISO()];
@@ -140,7 +123,7 @@ loadCategoryCSV().then(() => {
 });
 
 /* ---------------------------
-   8) 今日のログをテーブル表示（複数カテゴリ対応）
+   8) 今日のログをテーブル表示（同一食材1日1カウント対応）
    --------------------------- */
 function renderToday() {
   const tbody = document.querySelector('#todayTable tbody');
@@ -148,44 +131,42 @@ function renderToday() {
   const date = todayISO();
   const todayLogs = logs.filter(l => l.date === date);
 
-  // カウント集計（カテゴリごとに達成判定）
+  // 同一食材1日1回のみカウント
+  const countedFoods = new Set();
   const counts = {};
   for (const l of todayLogs) {
+    if (l.type !== 'food') continue;
+    if (countedFoods.has(l.name)) continue;
+    countedFoods.add(l.name);
+
     if (Array.isArray(l.category)) {
-      for (const c of l.category) {
-        counts[c] = (counts[c] || 0) + 1;
-      }
+      for (const c of l.category) counts[c] = (counts[c] || 0) + 1;
     }
   }
 
   for (const entry of todayLogs) {
     const tr = document.createElement('tr');
 
-    const tdTime = document.createElement('td'); tdTime.textContent = entry.time || ''; tr.appendChild(tdTime);
-    const tdName = document.createElement('td'); tdName.textContent = entry.name || ''; tr.appendChild(tdName);
+    tr.appendChild(Object.assign(document.createElement('td'), {textContent: entry.time || ''}));
+    tr.appendChild(Object.assign(document.createElement('td'), {textContent: entry.name || ''}));
 
     const tdCat = document.createElement('td');
-    if (Array.isArray(entry.category) && entry.category.length) {
-      tdCat.textContent = entry.category.map(c => categoryLabels[c] || c).join(' / ');
-    } else {
-      tdCat.textContent = '-';
-    }
+    tdCat.textContent = Array.isArray(entry.category) && entry.category.length
+      ? entry.category.map(c => categoryLabels[c] || c).join(' / ')
+      : '-';
     tr.appendChild(tdCat);
 
-    const tdAmt = document.createElement('td'); tdAmt.textContent = entry.amount || ''; tr.appendChild(tdAmt);
+    tr.appendChild(Object.assign(document.createElement('td'), {textContent: entry.amount || ''}));
 
     const tdCheck = document.createElement('td');
     if (Array.isArray(entry.category) && entry.category.length) {
       const checks = entry.category.map(c => {
         const got = counts[c];
-        if (goals[c] !== undefined) {
-          return got >= goals[c] ? '✅ 達成!' : `⚠️ あと${goals[c] - got}`;
-        } else return '-';
+        if (goals[c] !== undefined) return got >= goals[c] ? '✅ 達成!' : `⚠️ あと${goals[c] - got}`;
+        return '-';
       });
       tdCheck.innerHTML = checks.join('<br>');
-    } else {
-      tdCheck.textContent = '-';
-    }
+    } else tdCheck.textContent = '-';
     tr.appendChild(tdCheck);
 
     const tdOp = document.createElement('td');
@@ -212,13 +193,17 @@ function renderToday() {
 }
 
 /* ---------------------------
-   9) 今日の目標一覧を表示（複数カテゴリ対応）
+   9) 今日の目標一覧を表示（同一食材1日1カウント対応）
    --------------------------- */
 function updateSummary() {
   const date = todayISO();
   const todayLogs = logs.filter(l => l.date === date && l.type === 'food');
+
+  const countedFoods = new Set();
   const counts = {};
   for (const l of todayLogs) {
+    if (countedFoods.has(l.name)) continue;
+    countedFoods.add(l.name);
     if (Array.isArray(l.category)) {
       for (const c of l.category) counts[c] = (counts[c] || 0) + 1;
     }
@@ -226,7 +211,7 @@ function updateSummary() {
 
   const ul = document.getElementById('goalList');
   ul.innerHTML = '';
-  const order = ['gohan','misoshiru','gyokai','kaiso','mame','tamago','yasai'];
+  const order = ['gohan','misoshiru','gyokai','kaiso','mame','tamago','yasai','kinoko'];
   for (const key of order) {
     const li = document.createElement('li');
     const lbl = categoryLabels[key] || key;
@@ -235,15 +220,13 @@ function updateSummary() {
     if (goals[key] !== undefined) {
       const done = have >= goals[key];
       li.innerHTML = `<strong>${lbl}</strong>： ${have}/${need} ${done ? '<span class="achieved">✅' : '<span class="remaining">⚠️あと'+(need-have) }</span>`;
-    } else {
-      li.textContent = `${lbl}：${have}`;
-    }
+    } else li.textContent = `${lbl}：${have}`;
     ul.appendChild(li);
   }
 }
 
 /* ---------------------------
-   10) 食事エントリ追加（複数カテゴリ対応）
+   10) 食事エントリ追加
    --------------------------- */
 document.getElementById('addFoodBtn').addEventListener('click', () => {
   const time = document.getElementById('timeSelect').value;
@@ -251,7 +234,7 @@ document.getElementById('addFoodBtn').addEventListener('click', () => {
   const amount = document.getElementById('amountInput').value.trim();
   if (!name) { alert('食材名を入力してください'); return; }
 
-  const cats = detectCategories(name); // 複数カテゴリ判定
+  const cats = detectCategories(name); 
   const newEntry = {
     id: Date.now() + Math.random().toString(36).slice(2,6),
     date: todayISO(),
@@ -332,9 +315,6 @@ document.getElementById('resetGoals').addEventListener('click', () => {
 /* ---------------------------
    14) 1週間集計表示・コピー
    --------------------------- */
-/* ---------------------------
-   13) 1週間（過去7日）集計関数 — 改良版
-   --------------------------- */
 function generateWeekSummary(){
   const end = new Date();
   const out = [];
@@ -347,52 +327,49 @@ function generateWeekSummary(){
     const foodLogs = dayLogs.filter(l => l.type==='food');
     const activityLogs = dayLogs.filter(l => l.type==='activity');
 
-    // カテゴリごとのカウント
+    // カウント（重複食材1日1回）
+    const countedFoods = new Set();
     const counts = {};
     for(const l of foodLogs){
-      if(l.category) counts[l.category] = (counts[l.category]||0)+1;
+      if(countedFoods.has(l.name)) continue;
+      countedFoods.add(l.name);
+      if(l.category) for(const c of l.category) counts[c] = (counts[c]||0)+1;
     }
 
-    // 日付見出し
     out.push(`${iso}（朝〜夜）`);
 
-    // 食事内容
     if(foodLogs.length){
       out.push('  食事：');
       for(const l of foodLogs){
         const lbls = [];
-        if(l.category && goals[l.category]!==undefined){
-          const done = counts[l.category] >= goals[l.category];
-          lbls.push(`${categoryLabels[l.category]||l.category}${done ? '✅' : '⚠️'}`);
+        if(l.category){
+          for(const c of l.category){
+            if(goals[c]!==undefined){
+              const done = counts[c]>=goals[c];
+              lbls.push(`${categoryLabels[c]||c}${done?'✅':'⚠️'}`);
+            }
+          }
         }
         out.push(`    - ${l.time || '?'}：${l.name}${l.amount? '（'+l.amount+'）' : ''} → ${lbls.join(' / ') || '-'}`);
       }
-    } else {
-      out.push('  食事：記録なし');
-    }
+    } else out.push('  食事：記録なし');
 
-    // 活動内容
     if(activityLogs.length){
       out.push('  運動：');
-      for(const l of activityLogs){
-        out.push(`    - ${l.name}`);
-      }
+      for(const l of activityLogs) out.push(`    - ${l.name}`);
     }
 
-    // コメント
     if(comments[iso]){
       out.push('  コメント：');
       out.push(`    ${comments[iso]}`);
     }
 
-    // 空行で区切る
     out.push('');
   }
 
   return out.join('\n');
 }
 
-// ボタンとの連携
 document.getElementById('showWeekBtn').addEventListener('click', ()=>{
   const txt = generateWeekSummary();
   document.getElementById('weekArea').textContent = txt;
@@ -410,7 +387,7 @@ document.getElementById('copyWeekBtn').addEventListener('click', ()=>{
 document.getElementById('exportCsv').addEventListener('click', () => {
   const csv = ['id,date,time,name,amount,category,type'];
   for (const l of logs) {
-    csv.push(`${l.id},${l.date},${l.time},${l.name},${l.amount},"${l.category.join(' / ')}",${l.type}`);
+    csv.push(`${l.id},${l.date},${l.time},${l.name},${l.amount},"${Array.isArray(l.category)?l.category.join(' / '):''}",${l.type}`);
   }
   const blob = new Blob([csv.join('\n')], {type:'text/csv'});
   const a = document.createElement('a');

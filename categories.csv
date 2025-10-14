@@ -22,9 +22,9 @@ name,category
 目玉焼き,tamago
 小松菜,yasai
 ほうれん草,yasai
-しめじ,yasai
-エリンギ,yasai
-えのき,yasai
+しめじ,kinoko
+エリンギ,kinoko
+えのき,kinoko
 アジ,gyokai
 納豆,mame
 海苔,gyokai
@@ -41,7 +41,7 @@ name,category
 しりしり,gyokai
 ねぎ,yasai
 揚げ,mame
-親子丼,yasai
+親子丼,gohan
 親子丼,tamago
-牛丼,yasai
-豚丼,yasai
+牛丼,gohan
+豚丼,gohan
