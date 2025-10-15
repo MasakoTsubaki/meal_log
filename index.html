@@ -17,11 +17,15 @@
         <!-- 食事入力カード -->
         <div class="card" id="input-card">
           <h2>食事を追加</h2>
-          <p class="small-note">時間を選んで食材名と量（任意）を入力 → 「追加」ボタンで今日のログへ登録されます。</p>
+          <p class="small-note">時間を選んで食材名と量（任意）を入力 → 「追加」ボタンでログへ登録</p>
 
-          <!-- 日付表示 -->
+          <!-- 日付表示＋切替 -->
           <div class="row" style="justify-content:space-between; margin-top:6px;">
             <div class="muted">日付： <span id="todayDisplay"></span></div>
+            <div>
+              <label for="dateSelector">表示日を切り替え</label>
+              <input type="date" id="dateSelector" value="">
+            </div>
             <div class="pill">合計食材数： <span id="totalItems">0</span></div>
           </div>
 
@@ -65,19 +69,19 @@
         <!-- 先生コメント登録（今日用） -->
         <div class="card" style="margin-top:14px;">
           <h2>先生コメント（今日）</h2>
-          <p class="small-note">先生からのコメントをコピペしてここに貼る／自分の振り返りを保存できます。</p>
+          <p class="small-note">先生コメントや自分の振り返りを保存できます</p>
           <label>コメント（今日用）</label>
-          <textarea id="teacherComment" placeholder="先生のコメントや自分の振り返りを貼ってください"></textarea>
+          <textarea id="teacherComment" placeholder="先生のコメントや自分の振り返り"></textarea>
           <div class="actions">
             <button id="saveCommentBtn" class="small">保存</button>
-            <button id="copyCommentBtn" class="tiny">コピー（クリップボード）</button>
+            <button id="copyCommentBtn" class="tiny">コピー</button>
           </div>
         </div>
 
-<!-- 今日のログ表示 -->
+        <!-- 今日のログ表示 -->
         <div class="card" style="margin-top:14px;">
           <h2>今日のログ</h2>
-          <p class="small-note">※行の「削除」で誤入力を消せます。</p>
+          <p class="small-note">※行の「削除」で誤入力を消せます</p>
           <table id="todayTable">
             <thead>
               <tr>
@@ -94,73 +98,60 @@
         </div>
       </div>
 
- <!-- 右：目標達成サマリー／1週間まとめ／エクスポート -->
+      <!-- 右：目標達成サマリー／1週間まとめ／エクスポート -->
       <div>
-       <div class="card">
-  <h2>今日の目標達成状況</h2>
-  <p class="small-note">設定した目標と今日の達成を自動で判定します。</p>
-  <ul id="goalList" style="padding-left:18px; margin-top:8px;"></ul>
+        <div class="card">
+          <h2>今日の目標達成状況</h2>
+          <p class="small-note">設定した目標と今日の達成を自動判定</p>
+          <ul id="goalList" style="padding-left:18px; margin-top:8px;"></ul>
 
-  <div style="margin-top:12px;">
-    <label>目標（編集可）</label>
-    <div style="display:grid; grid-template-columns:1fr 90px; gap:8px; margin-top:6px;">
-      <input id="goal_gohan" type="text" value="2" />
-      <div class="small-note" style="align-self:center;text-align:center;">ご飯/日</div>
+          <div style="margin-top:12px;">
+            <label>目標（編集可）</label>
+            <div style="display:grid; grid-template-columns:1fr 90px; gap:8px; margin-top:6px;">
+              <input id="goal_gohan" type="text" value="2" /><div class="small-note">ご飯/日</div>
+              <input id="goal_misoshiru" type="text" value="2" /><div class="small-note">味噌汁/日</div>
+              <input id="goal_gyokai" type="text" value="1" /><div class="small-note">魚介/日</div>
+              <input id="goal_kaiso" type="text" value="1" /><div class="small-note">海藻/日</div>
+              <input id="goal_mame" type="text" value="1" /><div class="small-note">豆/日</div>
+              <input id="goal_tamago" type="text" value="1" /><div class="small-note">卵/日</div>
+              <input id="goal_yasai" type="text" value="5" /><div class="small-note">野菜/日</div>
+              <input id="goal_kinoko" type="text" value="1" /><div class="small-note">きのこ/日</div>
+            </div>
 
-      <input id="goal_misoshiru" type="text" value="2" />
-      <div class="small-note" style="align-self:center;text-align:center;">味噌汁/日</div>
-
-      <input id="goal_gyokai" type="text" value="1" />
-      <div class="small-note" style="align-self:center;text-align:center;">魚介/日</div>
-
-      <input id="goal_kaiso" type="text" value="1" />
-      <div class="small-note" style="align-self:center;text-align:center;">海藻/日</div>
-
-      <input id="goal_mame" type="text" value="1" />
-      <div class="small-note" style="align-self:center;text-align:center;">豆/日</div>
-
-      <input id="goal_tamago" type="text" value="1" />
-      <div class="small-note" style="align-self:center;text-align:center;">卵/日</div>
-
-      <input id="goal_yasai" type="text" value="5" />
-      <div class="small-note" style="align-self:center;text-align:center;">野菜/日</div>
-
-      <!-- きのこ目標欄追加 -->
-      <input id="goal_kinoko" type="text" value="1" />
-      <div class="small-note" style="align-self:center;text-align:center;">きのこ/日</div>
-    </div>
-
-    <div class="actions">
-      <button id="saveGoals" class="small">目標を保存</button>
-      <button id="resetGoals" class="tiny">初期値に戻す</button>
-    </div>
-  </div>
-</div>
-
+            <div class="actions">
+              <button id="saveGoals" class="small">目標を保存</button>
+              <button id="resetGoals" class="tiny">初期値に戻す</button>
+            </div>
+          </div>
+        </div>
 
         <div class="card" style="margin-top:14px;">
           <h2>1週間まとめ（過去7日）</h2>
-          <p class="small-note">過去7日分の集計を表示します。先生へ送るテキストもここで生成できます。</p>
+          <p class="small-note">過去7日分の集計を表示。先生へ送るテキストも生成可</p>
           <div class="actions">
-            <button id="showWeekBtn" class="small">1週間集計を表示</button>
-            <button id="copyWeekBtn" class="tiny">まとめをコピー</button>
+            <button id="showWeekBtn" class="small">1週間集計表示</button>
+            <button id="copyWeekBtn" class="tiny">まとめコピー</button>
           </div>
           <div id="weekArea" style="margin-top:10px; max-height:240px; overflow:auto; font-size:0.95rem;"></div>
         </div>
 
         <div class="card" style="margin-top:14px;">
           <h2>データ管理</h2>
-          <p class="small-note">LocalStorageに保存します。CSVダウンロードで先生に渡してください。</p>
+          <p class="small-note">LocalStorage保存／CSVダウンロード可能</p>
           <div style="display:flex; gap:8px; margin-top:6px;">
             <button id="exportCsv" class="blue-btn">CSVダウンロード</button>
             <button id="clearAll" class="danger-btn">全データクリア</button>
           </div>
-          <p class="small-note" style="margin-top:8px;">※全データクリアは取り消せません。必要ならCSVを先にダウンロードしてください。</p>
+          <p class="small-note" style="margin-top:8px;">※全データクリアは取り消せません。必要ならCSV先にダウンロード</p>
         </div>
       </div>
     </div>
   </div>
 
 <script src="meal_log.js"></script>
+<script>
+  // 今日の日付を表示
+  document.getElementById('todayDisplay').textContent = new Date().toLocaleDateString();
+</script>
 </body>
 </html>

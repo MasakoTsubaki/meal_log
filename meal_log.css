@@ -1,193 +1,197 @@
 /* ====================================================
-   meal_log.css — 食事＆活動ログ用スタイル
-   柔らかい黄色基調、初心者向けコメント多め
+   meal_log.css — 食事＆活動ログ用スタイル 完全修正版
+   元色・右側固定レイアウト・フル画面対応
    ==================================================== */
 
 /* ----------------------------
-   1. カラーテーマを変数で管理
-   :root 内で定義しておくと後で色変更が簡単
+   カラー変数
    ---------------------------- */
-:root{
-  --bg: #fffbea;        /* ページ全体の背景色（柔らかい黄色） */
-  --card: #fff8d9;      /* カード背景 */
-  --accent: #ffd76b;    /* ボタンやアクセント色 */
-  --accent-2: #ffb84d;  /* ボタンホバー時の色 */
-  --muted: #6b5b00;     /* 見出しや文字の濃いめカラー */
-  --table: #fffdf5;     /* テーブル背景 */
-  --danger: #ff8c42;    /* 注意・警告色 */
-  --blue: #6aa6ff;      /* 補助ブルー */
+:root {
+  --bg: #fffbea;       /* ページ全体の背景色（柔らかい黄色） */
+  --card: #fff8d9;     /* カード背景 */
+  --accent: #ffd76b;   /* ボタンやアクセント色 */
+  --accent-2: #ffb84d; /* ボタンホバー時の色 */
+  --muted: #6b5b00;    /* 見出しや文字の濃いめカラー */
+  --table: #fffdf5;    /* テーブル背景 */
+  --danger: #ff8c42;   /* 注意・警告色 */
+  --blue: #6aa6ff;     /* 補助ブルー */
 }
 
 /* ----------------------------
-   2. ページ全体の基本設定
+   全体設定
    ---------------------------- */
-body{
-  font-family:"Segoe UI", Meiryo, "ヒラギノ角ゴ ProN", sans-serif; /* フォント指定 */
-  background: var(--bg);  /* 背景色 */
-  color: #333;            /* 文字色 */
-  margin: 28px;           /* ページ余白 */
-  line-height: 1.5;       /* 行間 */
-}
-
-/* ページタイトル */
-h1{
-  text-align: center;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Yu Gothic", "游ゴシック体", sans-serif;
+  background: var(--bg);
   color: var(--muted);
-  margin-bottom: 12px;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
 /* ----------------------------
-   3. コンテナ・グリッド
+   グリッド（左右2列）
    ---------------------------- */
-.container{
-  max-width: 1100px; /* 最大幅 */
-  margin: 0 auto;    /* 中央配置 */
+.grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-/* 左右2カラムレイアウト（入力系 / サマリー系） */
-.grid{
-  display: grid;
-  grid-template-columns: 1fr 380px; /* 左が可変、右固定幅 */
-  gap: 18px;
-  align-items: start;
+/* 左カラム */
+.grid > div:first-child {
+  flex: 1 1 580px;
+  min-width: 300px;
 }
 
-/* レスポンシブ：幅が狭い場合は1列に */
-@media(max-width: 980px){
-  .grid{
-    grid-template-columns: 1fr;
-  }
+/* 右カラム */
+.grid > div:last-child {
+  flex: 0 0 320px;
+  min-width: 280px;
 }
 
 /* ----------------------------
-   4. カードスタイル
+   カード
    ---------------------------- */
-.card{
+.card {
   background: var(--card);
-  padding: 14px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  border: 1px solid rgba(120,100,0,0.06);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
 
-/* カード内見出し */
-.card h2{
-  margin-top: 0;
+h1, h2 {
   color: var(--muted);
-  font-size: 1.05rem;
 }
 
-/* ----------------------------
-   5. ラベル・入力欄
-   ---------------------------- */
-label{
-  display: block;
-  font-size: 0.92rem;
-  margin-top: 8px;
-  color: #5a4700;
+h1 { font-size: 1.6rem; margin-bottom: 16px; }
+h2 { font-size: 1.2rem; margin-bottom: 8px; }
+
+.small-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
 }
 
-input[type="text"], select, textarea{
-  width: 100%;                   /* 幅いっぱい */
-  padding: 8px;                   /* 内側余白 */
-  margin-top: 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(120,100,0,0.12);
-  background: #fffef8;
-  box-sizing: border-box;         /* パディング込みで幅計算 */
-}
-
-textarea{
-  resize: vertical; /* 縦方向だけサイズ変更可能 */
-  min-height: 60px;
-}
-
-/* ----------------------------
-   6. ボタン
-   ---------------------------- */
-button{
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pill {
   background: var(--accent);
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #452e00;
-  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
-
-button:hover{
-  background: var(--accent-2);
-}
-
-/* ボタンサイズ別 */
-.small{ font-size: 0.9rem; padding: 6px 10px; }
-.tiny{ font-size: 0.85rem; padding: 6px 8px; border-radius:6px; background:#fff7d9; border:1px solid rgba(0,0,0,0.03);}
-.danger-btn{ background: #ff8a5a; color:white; }
-.blue-btn{ background: var(--blue); color:white; }
 
 /* ----------------------------
-   7. テーブル
+   ボタン
    ---------------------------- */
-table{
+button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background: var(--accent);
+  color: var(--muted);
+  transition: background 0.2s;
+}
+
+button:hover { background: var(--accent-2); }
+
+.small { font-size:0.85rem; padding:4px 10px; }
+.tiny { font-size:0.75rem; padding:2px 8px; }
+
+.blue-btn { background: var(--blue); color: #fff; }
+.blue-btn:hover { background: #4e8de0; }
+
+.danger-btn { background: var(--danger); color: #fff; }
+.danger-btn:hover { background: #e06420; }
+
+/* ----------------------------
+   入力・テーブル
+   ---------------------------- */
+input, select, textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+  color: var(--muted);
+  background: #fff;
+}
+
+table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
   background: var(--table);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
-th, td{
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(120,100,0,0.06);
-  text-align: center;
+th, td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(120,100,0,0.1);
+  text-align: left;
+  vertical-align: top;
   font-size: 0.95rem;
 }
 
-th{
-  background: #ffefb0;
-  color: var(--muted);
-  font-weight: 700;
+th { background: var(--accent); color: var(--muted); }
+
+td:nth-child(5){ 
+  min-width: 100px; max-width: 120px; white-space: normal; word-wrap: break-word;
 }
 
-tr:nth-child(even){ background: #fff8da; }
-
-/* 達成表示 */
-.achieved{ color: green; font-weight:700; }
-.remaining{ color: var(--danger); font-weight:700; }
-
 /* ----------------------------
-   8. 補助クラス
+   1週間まとめ
    ---------------------------- */
-.row{ display:flex; gap:8px; align-items:center; }
-.flexcol{ display:flex; flex-direction:column; gap:8px; }
-.muted{ color:#6f5b00; font-size:0.95rem; }
-.actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-.pill{ background:#fff7d2; padding:6px 10px; border-radius:16px; border:1px solid rgba(0,0,0,0.03); display:inline-block; }
-.delete-btn{ background:#ffdfe0; color:#7a1b1b; padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.03); }
-.copy-area{ width:100%; height:110px; padding:8px; border-radius:6px; border:1px dashed rgba(120,100,0,0.12); background:#fffdf6; }
-.small-note{ font-size:0.85rem; color:#705600; }
+.week-day-block{
+  background: var(--card);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
 
-/* ----------------------------
-   9. 目標入力グリッド（新規きのこ対応）
-   ---------------------------- */
-.goal-grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)) repeat(auto-fit, minmax(60px, auto));
-  gap: 8px;
+.week-day-block h3{
+  margin-top:0; margin-bottom:6px; font-size:1rem; color: var(--muted);
+}
+
+.week-summary-table th, .week-summary-table td{
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(120,100,0,0.08);
+}
+
+.week-summary-table th{ background: #ffefb0; color: var(--muted); }
+.week-summary-table tr:nth-child(even){ background: #fff8da; }
+
+.week-comment{
+  background: #fff8cc;
+  padding: 6px 8px;
+  border-radius: 4px;
   margin-top: 6px;
-  align-items: center;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
-.goal-grid input{
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(120,100,0,0.12);
-  text-align: center;
-}
+/* 達成／未達色 */
+.achieved{ color: green; font-weight: bold; }
+.remaining{ color: #ff6600; font-weight: bold; }
 
-.goal-grid .small-note{
-  font-size: 0.85rem;
-  text-align: center;
-  color: #705600;
+/* ----------------------------
+   印刷用
+   ---------------------------- */
+@media print {
+  body{ margin: 10mm; background: #fff; color: #000; }
+  .week-day-block{ box-shadow: none; border: 1px solid #ccc; }
+  table{ page-break-inside: avoid; }
+  th, td{ font-size: 0.85rem; }
+  button, input, select, textarea{ display:none; }
 }
