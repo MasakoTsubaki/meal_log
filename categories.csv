@@ -24,7 +24,7 @@ name,category
 
 #卵
 卵,tamago
-目玉焼き,ta0mago
+目玉焼き,tamago
 親子丼,tamago
 たまご,tamago
 タマゴ,tamago
@@ -36,7 +36,6 @@ name,category
 
 #豆類
 豆腐,mame
-味噌汁,mame
 納豆,mame
 油揚げ,mame
 厚揚げ,mame
@@ -54,7 +53,6 @@ name,category
 
 #魚介
 鮭,gyokai
-味噌汁,gyokai
 鰆,gyokai
 アジ,gyokai
 まぐろ,gyokai

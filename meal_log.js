@@ -1,6 +1,8 @@
 /* ====================================================
-   meal_log.js — 食事＆活動ログ v4
-   過去日対応・重複カウント共通化・コメント/1週間HTMLまとめ対応
+   食事＆活動ログ v7（抽出食材完全版）
+   過去日対応・重複カウント・コメント・1週間まとめ
+   ご飯・味噌汁は1食ごと、それ以外は1日1回
+   ユーザー入力からCSV登録済み食材を抽出してカウント
    ==================================================== */
 
 /* ====================
@@ -8,7 +10,7 @@
    ==================== */
 function todayISO() { return new Date().toISOString().slice(0,10); }
 
-const LS_LOGS='meal_logs_v4', LS_COMMENTS='meal_comments_v4', LS_GOALS='meal_goals_v4';
+const LS_LOGS='meal_logs_v7', LS_COMMENTS='meal_comments_v7', LS_GOALS='meal_goals_v7';
 
 let defaultGoals={ gohan:2, misoshiru:2, gyokai:1, kaiso:1, mame:1, tamago:1, yasai:5, kinoko:1 };
 let logs = JSON.parse(localStorage.getItem(LS_LOGS)||'[]');
@@ -27,49 +29,108 @@ const categoryLabels={
   mame:'豆', tamago:'卵', yasai:'野菜', kinoko:'きのこ' 
 };
 
-function normalizeFoodName(name){
-  if(!name) return name;
-  const n=name.trim().toLowerCase();
-  const map={'ミニトマト':'トマト','マグロ':'まぐろ','タラ':'たら','鱈':'たら',
-             'タケノコ':'たけのこ','ナス':'なす','しいたけ':'椎茸','まいたけ':'舞茸',
-             'エリンギ':'エリンギ','卵':'卵','タマゴ':'卵','たまご':'卵','玉子':'卵','エッグ':'卵',
-             '目玉焼き':'目玉焼き'};
-  return map[n]||name;
+function normalizeFoodName(name) {
+  if (!name) return name;
+  let n = name.trim().toLowerCase();
+
+  const map = {
+    'ミニトマト': 'トマト',
+    'マグロ': 'まぐろ',
+    'タラ': 'たら', '鱈': 'たら',
+    'タケノコ': 'たけのこ',
+    'ナス': 'なす',
+    'しいたけ': '椎茸',
+    'まいたけ': '舞茸',
+    'エリンギ': 'エリンギ',
+    '卵': '卵', 'タマゴ': '卵', 'たまご': '卵', '玉子': '卵', 'エッグ': '卵',
+    '目玉焼き': '目玉焼き'
+  };
+
+  for (const [key, value] of Object.entries(map)) {
+    if (n.includes(key)) {
+      n = n.replace(new RegExp(key, 'g'), value);
+    }
+  }
+
+  return n;
 }
 
-/* カテゴリ検出（CSV対応可能） */
+/* ====================
+   CSV読み込み・カテゴリ判定
+   ==================== */
 let categoryRulesCSV=[];
+
 async function loadCategoryCSV(){
   try{
     const res = await fetch('categories.csv');
     const text = await res.text();
-    categoryRulesCSV = text.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'))
+    categoryRulesCSV = text.split('\n').map(l=>l.trim()).filter(l=>l && !l.startsWith('#'))
       .map(l=>{ const [name,cat]=l.split(',').map(s=>s.trim()); return {name,category:cat}; });
   }catch(e){ console.error('CSV読み込み失敗',e); }
 }
 
+// CSVに登録された文字列を抽出してカテゴリ判定
 function detectCategories(name){
   if(!name) return [];
-  const n = normalizeFoodName(name.toString());
-  const cats=[];
-  for(const e of categoryRulesCSV){
-    if(n.includes(e.name) && e.category && !cats.includes(e.category)) cats.push(e.category);
+  const cats = [];
+  const items = name.split(/[,、・，]/).map(s=>s.trim()).filter(Boolean);
+
+  for(const item of items){
+    const n = normalizeFoodName(item);
+    for(const e of categoryRulesCSV){
+      if(n.includes(e.name) && e.category && !cats.includes(e.category)){
+        cats.push(e.category);
+      }
+    }
   }
   return cats;
 }
 
 /* ====================
-   重複カウント（1日1食材1カウント）
+   ユーザー入力抽出済み食材保持（累積版）
    ==================== */
-function countUniqueFoodsPerDay(logsArray, date){
-  const todayLogs=logsArray.filter(l=>l.date===date && l.type==='food');
-  const counts={}, counted={};
-  todayLogs.forEach(l=>{
-    if(!counted[l.name]){
-      counted[l.name]=true;
-      (l.category||[]).forEach(c=>counts[c]=(counts[c]||0)+1);
+let extractedFoodsByDate = {}; // { '2025-10-15': ['ネギ','わかめ','豆腐','ピーマン'] }
+
+function addUserFoodInput(date, userInput){
+  const items = userInput.split(/[,、・，]/).map(s=>s.trim()).filter(Boolean);
+  const normalized = items.map(i => normalizeFoodName(i));
+
+  if(!extractedFoodsByDate[date]) extractedFoodsByDate[date]=[];
+  const extracted = extractedFoodsByDate[date]; // 既存の累積リストを取得
+
+  normalized.forEach(name=>{
+    for(const rule of categoryRulesCSV){
+      if(name.includes(rule.name) && !extracted.includes(rule.name)){
+        extracted.push(rule.name);
+      }
     }
   });
+
+  return extracted; // 表示用
+}
+
+/* ====================
+   重複カウント（抽出食材ベース）
+   ==================== */
+function countExtractedFoodsPerDay(extractedFoodsArray){
+  const counts = {};
+  const countedFoodsByCategory = {};
+
+  extractedFoodsArray.forEach(name=>{
+    const cats = detectCategories(name);
+    cats.forEach(c=>{
+      if(c==='gohan'||c==='misoshiru'){
+        counts[c] = (counts[c]||0)+1;
+        return;
+      }
+      if(!countedFoodsByCategory[c]) countedFoodsByCategory[c]=new Set();
+      if(!countedFoodsByCategory[c].has(name)){
+        countedFoodsByCategory[c].add(name);
+        counts[c] = (counts[c]||0)+1;
+      }
+    });
+  });
+
   return counts;
 }
 
@@ -80,9 +141,6 @@ function renderDateLogs(date){
   const tbody=document.querySelector('#todayTable tbody');
   tbody.innerHTML='';
   const dayLogs=logs.filter(l=>l.date===date);
-  const counts=countUniqueFoodsPerDay(logs,date);
-  const countedFoods={};
-  dayLogs.forEach(l=>{ if(l.type==='food') countedFoods[l.name]=true; });
 
   dayLogs.forEach(entry=>{
     const tr=document.createElement('tr');
@@ -92,66 +150,98 @@ function renderDateLogs(date){
       else td.textContent=entry[f]||'';
       tr.appendChild(td);
     });
-    // チェック列
-    const tdCheck=document.createElement('td');
-    if(entry.category && entry.category.length){
-      tdCheck.innerHTML=entry.category.map(c=>{
-        if(goals[c]!==undefined){
-          const got=counts[c]||0;
-          return got>=goals[c]? '✅ 達成':'⚠️ あと'+(goals[c]-got);
-        }
-        return '-';
-      }).join('<br>');
-    }else tdCheck.textContent='-';
-    tr.appendChild(tdCheck);
     // 削除
     const tdOp=document.createElement('td');
     const del=document.createElement('button'); del.textContent='削除'; del.className='delete-btn';
-    del.onclick=()=>{ if(!confirm('削除しますか？')) return; logs=logs.filter(x=>x.id!==entry.id); saveLogs(); renderDateLogs(date); updateSummary(date); };
+    del.onclick=()=>{ if(!confirm('削除しますか？')) return; logs=logs.filter(x=>x.id!==entry.id); saveLogs(); renderDateLogs(date); updateSummaryFromExtracted(date); };
     tdOp.appendChild(del); tr.appendChild(tdOp);
 
     tbody.appendChild(tr);
   });
 
-  document.getElementById('totalItems').textContent=Object.keys(countedFoods).length;
-  updateSummary(date);
+  // 抽出食材表示
+  const extractedDiv=document.getElementById('extractedFoodsDisplay');
+  if(extractedDiv) extractedDiv.textContent=(extractedFoodsByDate[date]||[]).join('、');
+
+  updateSummaryFromExtracted(date);
+
+  // コメント
   document.getElementById('teacherComment').value=comments[date]||'';
 }
 
 /* ====================
-   目標サマリー更新
+   目標サマリー更新（累積食材反映）
    ==================== */
-function updateSummary(date){
-  const counts=countUniqueFoodsPerDay(logs,date);
-  const ul=document.getElementById('goalList'); ul.innerHTML='';
+function updateSummaryFromExtracted(date){
+  const extracted = extractedFoodsByDate[date] || [];
+  const counts = {};
+  const countedFoodsByCategory = {};
+
+  // 今日の食事ログを取得
+  const dayFoodLogs = logs.filter(l => l.date === date && l.type==='food');
+
+  extracted.forEach(name=>{
+    const cats = detectCategories(name);
+    cats.forEach(c=>{
+      if(c==='gohan' || c==='misoshiru'){
+        // ご飯・味噌汁は「食事ログの件数分」カウント
+        const logCount = dayFoodLogs.filter(l => l.name.includes(name) && detectCategories(l.name).includes(c)).length;
+        counts[c] = (counts[c] || 0) + logCount;
+        return;
+      }
+      // その他は1日1回カウント
+      if(!countedFoodsByCategory[c]) countedFoodsByCategory[c] = new Set();
+      if(!countedFoodsByCategory[c].has(name)){
+        countedFoodsByCategory[c].add(name);
+        counts[c] = (counts[c] || 0) + 1;
+      }
+    });
+  });
+
+  // 目標表示
+  const ul = document.getElementById('goalList');
+  ul.innerHTML='';
   const order=['gohan','misoshiru','gyokai','kaiso','mame','tamago','yasai','kinoko'];
+
   for(const key of order){
-    const li=document.createElement('li');
-    const lbl=categoryLabels[key]||key;
-    const have=counts[key]||0; const need=goals[key]||'-';
-    if(goals[key]!==undefined){
-      const done=have>=goals[key];
-      li.innerHTML=`<strong>${lbl}</strong>：${have}/${need} ${done?'<span class="achieved">✅':'<span class="remaining">⚠️あと'+(need-have)}</span>`;
-    }else li.textContent=`${lbl}：${have}`;
+    const li = document.createElement('li');
+    const lbl = categoryLabels[key] || key;
+    const have = counts[key] || 0;
+    const need = goals[key] || '-';
+    if(goals[key] !== undefined){
+      const done = have >= goals[key];
+      li.innerHTML = `<strong>${lbl}</strong>：${have}/${need} ${done?'<span class="achieved">✅':'<span class="remaining">⚠️あと'+(need-have)}</span>`;
+    } else li.textContent = `${lbl}：${have}`;
     ul.appendChild(li);
   }
 }
 
+
 /* ====================
    過去日切替
    ==================== */
-document.getElementById('dateSelector').addEventListener('change', e=>renderDateLogs(e.target.value));
+document.getElementById('dateSelector').addEventListener('change', e=>{
+  renderDateLogs(e.target.value);
+});
 
 /* ====================
    食事・活動追加
    ==================== */
 document.getElementById('addFoodBtn').addEventListener('click', ()=>{
   const date=document.getElementById('dateSelector').value||todayISO();
-  let name=document.getElementById('foodInput').value.trim(); if(!name){ alert('食材名入力'); return; }
-  name=normalizeFoodName(name); const amount=document.getElementById('amountInput').value.trim();
-  const cats=detectCategories(name);
-  const newEntry={id:Date.now()+Math.random().toString(36).slice(2,6), date, time:document.getElementById('timeSelect').value, name, amount, category:cats, type:'food'};
-  logs.push(newEntry); saveLogs(); document.getElementById('foodInput').value=''; document.getElementById('amountInput').value='';
+  const userInput=document.getElementById('foodInput').value.trim();
+  if(!userInput){ alert('食材名入力'); return; }
+
+  // 抽出
+  const extracted = addUserFoodInput(date,userInput);
+
+  // ログにも保存（表示用）
+  const cats = detectCategories(userInput);
+  const newEntry={id:Date.now()+Math.random().toString(36).slice(2,6), date, time:document.getElementById('timeSelect').value, name:userInput, amount:document.getElementById('amountInput').value.trim(), category:cats, type:'food'};
+  logs.push(newEntry); saveLogs();
+
+  // 表示
+  document.getElementById('foodInput').value=''; document.getElementById('amountInput').value='';
   renderDateLogs(date);
 });
 
@@ -176,12 +266,12 @@ document.getElementById('copyCommentBtn').addEventListener('click', ()=>navigato
    ==================== */
 document.getElementById('saveGoals').addEventListener('click', ()=>{
   for(const k in defaultGoals){ const v=parseInt(document.getElementById(`goal_${k}`).value); goals[k]=isNaN(v)?defaultGoals[k]:v; }
-  saveGoals(); updateSummary(document.getElementById('dateSelector').value||todayISO()); alert('目標保存');
+  saveGoals(); updateSummaryFromExtracted(document.getElementById('dateSelector').value||todayISO()); alert('目標保存');
 });
 document.getElementById('resetGoals').addEventListener('click', ()=>{
   goals=Object.assign({},defaultGoals); saveGoals();
   for(const k in defaultGoals){ const el=document.getElementById(`goal_${k}`); if(el) el.value=defaultGoals[k]; }
-  updateSummary(document.getElementById('dateSelector').value||todayISO());
+  updateSummaryFromExtracted(document.getElementById('dateSelector').value||todayISO());
 });
 
 /* ====================
@@ -192,19 +282,18 @@ function generateWeekSummaryHTML(){
   for(let d=0; d<7; d++){
     const dateObj=new Date(); dateObj.setDate(end.getDate()-d); const iso=dateObj.toISOString().slice(0,10);
     const dayLogs=logs.filter(l=>l.date===iso); const foodLogs=dayLogs.filter(l=>l.type==='food'); const activityLogs=dayLogs.filter(l=>l.type==='activity');
-    const counts=countUniqueFoodsPerDay(logs,iso);
+    const counts=countExtractedFoodsPerDay(extractedFoodsByDate[iso]||[]);
 
     const dayDiv=document.createElement('div'); dayDiv.className='week-day-block'; dayDiv.style.marginBottom='16px';
     const h3=document.createElement('h3'); h3.textContent=iso; dayDiv.appendChild(h3);
 
     if(foodLogs.length){
       const table=document.createElement('table'); table.className='week-summary-table'; table.style.width='100%'; table.style.borderCollapse='collapse';
-      table.innerHTML=`<thead><tr><th>時間</th><th>食材</th><th>カテゴリ</th><th>量 / 備考</th><th>チェック</th></tr></thead><tbody></tbody>`;
+      table.innerHTML=`<thead><tr><th>時間</th><th>食材</th><th>カテゴリ</th><th>量 / 備考</th></tr></thead><tbody></tbody>`;
       const tbody=table.querySelector('tbody');
       foodLogs.forEach(l=>{
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${l.time||''}</td><td>${l.name}</td><td>${l.category.length?l.category.map(c=>categoryLabels[c]||c).join(' / '):'-'}</td><td>${l.amount||''}</td>
-        <td>${l.category.length?l.category.map(c=>goals[c]!==undefined?(counts[c]>=goals[c]?'✅':'⚠️あと'+(goals[c]-counts[c])):'-').join('<br>'):'-'}</td>`;
+        tr.innerHTML=`<td>${l.time||''}</td><td>${l.name}</td><td>${l.category.length?l.category.map(c=>categoryLabels[c]||c).join(' / '):'-'}</td><td>${l.amount||''}</td>`;
         tbody.appendChild(tr);
       });
       dayDiv.appendChild(table);
@@ -221,7 +310,7 @@ document.getElementById('showWeekBtn').addEventListener('click', ()=>{
   const weekArea=document.getElementById('weekArea'); weekArea.innerHTML=''; weekArea.appendChild(generateWeekSummaryHTML());
 });
 document.getElementById('copyWeekBtn').addEventListener('click', ()=>{
-  const txt=document.getElementById('weekArea').textContent||generateWeekSummary();
+  const txt=document.getElementById('weekArea').textContent||generateWeekSummaryHTML().textContent;
   if(!txt){ alert('1週間まとめが空です'); return; }
   navigator.clipboard?.writeText(txt).then(()=>alert('コピーしました'));
 });
@@ -237,7 +326,8 @@ document.getElementById('exportCsv').addEventListener('click', ()=>{
 });
 document.getElementById('clearAll').addEventListener('click', ()=>{
   if(!confirm('全データ削除しますか？')) return;
-  logs=[]; comments={}; goals=Object.assign({},defaultGoals); saveLogs(); saveComments(); saveGoals();
+  logs=[]; comments={}; goals=Object.assign({},defaultGoals); extractedFoodsByDate={};
+  saveLogs(); saveComments(); saveGoals();
   renderDateLogs(document.getElementById('dateSelector').value||todayISO()); alert('全データ削除しました');
 });
 
