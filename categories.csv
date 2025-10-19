@@ -10,6 +10,7 @@ name,category
 
 #味噌汁
 味噌汁,misoshiru
+豚汁,misoshiru
 
 #海藻
 わかめ,kaiso
@@ -31,8 +32,7 @@ name,category
 エッグ,tamago
 玉子,tamago
 うずら,tamago
-オムレツ,tamago
-オムライス,tamago
+オム,tamago
 
 #豆類
 豆腐,mame
@@ -50,14 +50,19 @@ name,category
 卯の花,mame
 豆乳,mame
 くるみ,mame
+ピーナツ,mame
 
 #魚介
 鮭,gyokai
 鰆,gyokai
 アジ,gyokai
+ほっけ,gyokai
+ホッケ,gyokai
+カマス,gyokai
 まぐろ,gyokai
 マグロ,gyokai
 鮪,gyokai
+鯖,gyokai
 鯛,gyokai
 たら,gyokai
 タラ,gyokai
@@ -76,10 +81,12 @@ name,category
 ちくわ,gyokai
 さつま揚げ,gyokai
 はんぺん,gyokai
+カニカマ,gyokai
 じゃこ,gyokai
 しらす,gyokai
 シラス,gyokai
-カニカマ,gyokai
+いりこ,gyokai
+かに,gyokai
 いか,gyokai
 たこ,gyokai
 えび,gyokai
@@ -95,6 +102,8 @@ name,category
 カジキ,gyokai
 サバ,gyokai
 鯖,gyokai
+フィッシュ,gyokai
+小魚,gyokai
 
 
 #きのこ類
@@ -107,6 +116,7 @@ name,category
 舞茸,kinoko
 まいたけ,kinoko
 マッシュルーム,kinoko
+キクラゲ,kinoko
 
 #野菜
 キャベツ,yasai
